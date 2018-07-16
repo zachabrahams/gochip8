@@ -115,7 +115,7 @@ func (c8 *Chip8) Run() {
 			tick++
 			clearScreen()
 			c8.display.bitDump()
-			fmt.Println(tick)
+			fmt.Printf("Tick: %d\n", tick)
 		}
 	}()
 
@@ -124,12 +124,19 @@ func (c8 *Chip8) Run() {
 
 func (c8 *Chip8) execInstr() {
 	instr := c8.memory[c8.programPtr : c8.programPtr+2]
-	fmt.Println(instr)
+	fmt.Printf("Instr: %X %v\n", instr, instr)
 
 	switch {
 	// 00E0 - CLS - clear the display
 	case instr[0] == 0 && instr[1] == 224:
 		c8.display.clear()
+	// 6xkk - LD Vx, byte - Load the byte value into the register specified by x
+	case lNib(instr[0]) == x6:
+		c8.registers[rNib(instr[0])] = instr[1]
+	// Annn - LD I, addr - Load the int16 addr specified by nnn into the I register
+	case lNib(instr[0]) == xA:
+		addr := getAddr(instr[0], instr[1])
+		c8.regI = addr
 	default:
 		msg := fmt.Sprintf("Unknown Instruction: %X\n", instr)
 		panic(msg)
@@ -150,4 +157,18 @@ func clearScreen() {
 	cmd := exec.Command("clear")
 	cmd.Stdout = os.Stdout
 	cmd.Run()
+}
+
+func lNib(b byte) byte {
+	return b >> 4
+}
+
+func rNib(b byte) byte {
+	return b & 15
+}
+
+func getAddr(b1, b2 byte) uint16 {
+	right := uint16(rNib(b1)) << 8
+	left := uint16(b2)
+	return right + left
 }

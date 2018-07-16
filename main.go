@@ -32,10 +32,11 @@ const (
 )
 
 type Chip8 struct {
-	display   *Display
-	memory    []byte
-	registers map[byte]byte
-	regI      uint16
+	display    *Display
+	memory     []byte
+	programPtr uint16
+	registers  map[byte]byte
+	regI       uint16
 }
 
 type Display struct {
@@ -49,6 +50,14 @@ func NewDisplay() *Display {
 		d = append(d, line)
 	}
 	return &Display{screen: d}
+}
+
+func (d *Display) clear() {
+	for i, line := range d.screen {
+		for j := range line {
+			d.screen[i][j] = 0
+		}
+	}
 }
 
 func (d *Display) bitDump() {
@@ -69,10 +78,11 @@ func NewChip8() *Chip8 {
 	}
 
 	return &Chip8{
-		display:   NewDisplay(),
-		memory:    m,
-		registers: r,
-		regI:      0,
+		display:    NewDisplay(),
+		memory:     m,
+		programPtr: PROGRAM_OFFSET,
+		registers:  r,
+		regI:       0,
 	}
 }
 
@@ -101,18 +111,31 @@ func (c8 *Chip8) Run() {
 	tick := 0
 	go func() {
 		for _ = range ticker.C {
+			c8.execInstr()
 			tick++
 			clearScreen()
 			c8.display.bitDump()
 			fmt.Println(tick)
-			if tick >= 300 {
-				wg.Done()
-				ticker.Stop()
-			}
 		}
 	}()
 
 	wg.Wait()
+}
+
+func (c8 *Chip8) execInstr() {
+	instr := c8.memory[c8.programPtr : c8.programPtr+2]
+	fmt.Println(instr)
+
+	switch {
+	// 00E0 - CLS - clear the display
+	case instr[0] == 0 && instr[1] == 224:
+		c8.display.clear()
+	default:
+		msg := fmt.Sprintf("Unknown Instruction: %X\n", instr)
+		panic(msg)
+	}
+
+	c8.programPtr = c8.programPtr + 2
 }
 
 func main() {

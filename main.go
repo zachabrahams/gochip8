@@ -27,7 +27,9 @@ const (
 
 func main() {
 	fmt.Println("Starting Chip8 Emulator")
-	c8 := NewChip8()
+	screen := NewScreen()
+	defer screen.Close()
+	c8 := NewChip8(screen)
 	c8.Load("/Users/zach/chip8/ibm_logo.ch8")
 	c8.Run()
 	fmt.Println("Closing Chip8 Emulator")

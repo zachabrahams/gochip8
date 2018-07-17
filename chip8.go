@@ -13,13 +13,14 @@ import (
 
 type Chip8 struct {
 	display    *Display
+	screen     *Screen
 	memory     []byte
 	programPtr uint16
 	registers  map[byte]byte
 	regI       uint16
 }
 
-func NewChip8() *Chip8 {
+func NewChip8(screen *Screen) *Chip8 {
 	m := make([]byte, 4096, 4096)
 	r := map[byte]byte{}
 	// Registers 0-15 are for V0-VF.
@@ -29,6 +30,7 @@ func NewChip8() *Chip8 {
 
 	return &Chip8{
 		display:    NewDisplay(),
+		screen:     screen,
 		memory:     m,
 		programPtr: PROGRAM_OFFSET,
 		registers:  r,
@@ -39,7 +41,7 @@ func NewChip8() *Chip8 {
 func (c8 *Chip8) String() {
 	var msg bytes.Buffer
 	// msg.WriteString(hex.dump(c8.memory)
-	c8.display.bitDump()
+	// c8.display.bitDump()
 	msg.WriteString(fmt.Sprintf("Program Counter: %X (%d)\n", c8.programPtr, c8.programPtr))
 
 	instr := c8.memory[c8.programPtr : c8.programPtr+2]
@@ -79,9 +81,10 @@ func (c8 *Chip8) Run() {
 		for _ = range ticker.C {
 			c8.execInstr()
 			tick++
-			clearScreen()
+			//clearScreen()
 			//c8.String()
-			c8.display.bitDump()
+			//c8.display.bitDump()
+			c8.screen.Update(c8.display)
 		}
 	}()
 

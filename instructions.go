@@ -5,22 +5,26 @@ import (
 )
 
 func (c8 *Chip8) execInstr() {
-	instr := c8.memory[c8.programPtr : c8.programPtr+2]
-	fmt.Printf("Instr: %X %v\n", instr, instr)
+	nextInstr := c8.programPtr + 2
+	instr := c8.memory[c8.programPtr:nextInstr]
 
 	switch {
 	// 00E0 - CLS - clear the display
 	case instr[0] == 0 && instr[1] == 224:
 		c8.display.clear()
+	// 1nnn - JP addr
+	case lNib(instr[0]) == x1:
+		addr := getAddr(instr)
+		nextInstr = addr
 	// 6xkk - LD Vx, byte - Load the byte value into the register specified by x
 	case lNib(instr[0]) == x6:
 		c8.registers[rNib(instr[0])] = instr[1]
-	// 7xkk - ADD Vx, byte
-	//	case lNib(instr[0]) == x7:
-	//		c8.registers[rNib(instr[0])] += instr[1]
+		// 7xkk - ADD Vx, byte
+	case lNib(instr[0]) == x7:
+		c8.registers[rNib(instr[0])] += instr[1]
 	// Annn - LD I, addr - Load the int16 addr specified by nnn into the I register
 	case lNib(instr[0]) == xA:
-		addr := getAddr(instr[0], instr[1])
+		addr := getAddr(instr)
 		c8.regI = addr
 	// Dxyn - DRW Vx, Vy, nibble - grab an nibble length byte from I and draw it at the
 	// values of Vx and Vy. If at least one pixel is erased set VF to 1 otherwise to 0
@@ -54,7 +58,7 @@ func (c8 *Chip8) execInstr() {
 		panic(msg)
 	}
 
-	c8.programPtr = c8.programPtr + 2
+	c8.programPtr = nextInstr
 }
 
 func lNib(b byte) byte {
@@ -65,8 +69,8 @@ func rNib(b byte) byte {
 	return b & 15
 }
 
-func getAddr(b1, b2 byte) uint16 {
-	right := uint16(rNib(b1)) << 8
-	left := uint16(b2)
+func getAddr(bs []byte) uint16 {
+	right := uint16(rNib(bs[0])) << 8
+	left := uint16(bs[1])
 	return right + left
 }

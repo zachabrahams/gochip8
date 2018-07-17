@@ -15,18 +15,19 @@ func (c8 *Chip8) execInstr() {
 	// 6xkk - LD Vx, byte - Load the byte value into the register specified by x
 	case lNib(instr[0]) == x6:
 		c8.registers[rNib(instr[0])] = instr[1]
+	// 7xkk - ADD Vx, byte
+	//	case lNib(instr[0]) == x7:
+	//		c8.registers[rNib(instr[0])] += instr[1]
 	// Annn - LD I, addr - Load the int16 addr specified by nnn into the I register
 	case lNib(instr[0]) == xA:
 		addr := getAddr(instr[0], instr[1])
 		c8.regI = addr
 	// Dxyn - DRW Vx, Vy, nibble - grab an nibble length byte from I and draw it at the
-	// values of Vx and Vy.
-	// TODO:
-	// a. If a pixel is erased set VF to 1, otherwise 0.
-	// b. If part of a sprite is offscreen it should be wrapped
+	// values of Vx and Vy. If at least one pixel is erased set VF to 1 otherwise to 0
+	// if a part of the sprite is located off screen - wrap it.
 	case lNib(instr[0]) == xD:
-		xOffset := 55 - rNib(instr[0])
-		yOffset := lNib(instr[0])
+		xOffset := 55 - c8.registers[rNib(instr[0])]
+		yOffset := c8.registers[lNib(instr[1])]
 		length := rNib(instr[1])
 
 		sprite := c8.memory[c8.regI : c8.regI+uint16(length)]

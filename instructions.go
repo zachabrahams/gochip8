@@ -10,15 +10,29 @@ func (c8 *Chip8) execInstr() {
 
 	switch {
 	// 00E0 - CLS - clear the display
-	case instr[0] == 0x0 && instr[1] == 0xE0:
+	case instr[0] == 0x00 && instr[1] == 0xE0:
 		c8.display.clear()
+	// 00EE RET returns from a subroutine
+	case instr[0] == 0x00 && instr[1] == 0xEE:
+		cs := c8.callStack
+		nextInstr, c8.callStack = cs[len(cs)-1], cs[:len(cs)-1]
 	// 1nnn - JP addr
 	case lNib(instr[0]) == 0x1:
 		addr := getAddr(instr)
 		nextInstr = addr
-	// 3xkk - SE Vx, byte - Skip next instruction iv Vx = kk
+		// 2nnn - JP addr - pushes program counter +2 to the call stack and makes program counter = nnn
+	case lNib(instr[0]) == 0x2:
+		c8.callStack = append(c8.callStack, c8.programPtr+2)
+		addr := getAddr(instr)
+		nextInstr = addr
+	// 3xkk - SE Vx, byte - Skip next instruction if Vx = kk
 	case lNib(instr[0]) == 0x3:
 		if c8.registers[rNib(instr[0])] == instr[1] {
+			nextInstr += 2
+		}
+	// 4xkk SNE Vx, byte - Skip next instruction if Vx != kk
+	case lNib(instr[0]) == 0x4:
+		if c8.registers[rNib(instr[0])] != instr[1] {
 			nextInstr += 2
 		}
 	// 6xkk - LD Vx, byte - Load the byte value into the register specified by x
@@ -66,6 +80,9 @@ func (c8 *Chip8) execInstr() {
 				c8.registers[0xF] = 1
 			}
 		}
+	// Fx1E = ADD I, VX - Add Vx to I and store in I
+	case lNib(instr[0]) == 0xF && instr[1] == 0x1E:
+		c8.regI += uint16(c8.registers[rNib(instr[0])])
 	default:
 		msg := fmt.Sprintf("Unknown Instruction: %X\n", instr)
 		panic(msg)

@@ -12,6 +12,7 @@ import (
 )
 
 type Chip8 struct {
+	callStack  []uint16
 	display    *Display
 	screen     *Screen
 	memory     []byte
@@ -29,6 +30,7 @@ func NewChip8(screen *Screen) *Chip8 {
 	}
 
 	return &Chip8{
+		callStack:  []uint16{},
 		display:    NewDisplay(),
 		screen:     screen,
 		memory:     m,
@@ -51,6 +53,7 @@ func (c8 *Chip8) String() {
 		msg.WriteString(fmt.Sprintf("V%X: %02X (%d)\n", i, c8.registers[byte(i)], c8.registers[byte(i)]))
 	}
 	msg.WriteString(fmt.Sprintf("I: %03X (%d)\n", c8.regI, c8.regI))
+	msg.WriteString(fmt.Sprintf("Call Stack: %v", c8.callStack))
 	fmt.Println(msg.String())
 }
 
@@ -82,7 +85,7 @@ func (c8 *Chip8) Run() {
 			c8.execInstr()
 			tick++
 			// clearScreen()
-			//c8.String()
+			// c8.String()
 			c8.screen.Update(c8.display)
 		}
 	}()

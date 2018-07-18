@@ -14,7 +14,7 @@ func main() {
 	screen := NewScreen()
 	defer screen.Close()
 	c8 := NewChip8(screen)
-	c8.Load("/Users/zach/chip8/chip8pic.ch8")
+	c8.Load("/Users/zach/chip8/chip8_emu_logo.ch8")
 	c8.Run()
 	fmt.Println("Closing Chip8 Emulator")
 }

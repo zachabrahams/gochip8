@@ -41,7 +41,7 @@ func NewChip8(screen *Screen) *Chip8 {
 func (c8 *Chip8) String() {
 	var msg bytes.Buffer
 	// msg.WriteString(hex.dump(c8.memory)
-	// c8.display.bitDump()
+	c8.display.bitDump()
 	msg.WriteString(fmt.Sprintf("Program Counter: %X (%d)\n", c8.programPtr, c8.programPtr))
 
 	instr := c8.memory[c8.programPtr : c8.programPtr+2]
@@ -81,9 +81,8 @@ func (c8 *Chip8) Run() {
 		for _ = range ticker.C {
 			c8.execInstr()
 			tick++
-			//clearScreen()
+			// clearScreen()
 			//c8.String()
-			//c8.display.bitDump()
 			c8.screen.Update(c8.display)
 		}
 	}()

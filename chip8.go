@@ -14,6 +14,7 @@ import (
 type Chip8 struct {
 	callStack  []uint16
 	display    *Display
+	delayTimer *Timer
 	screen     *Screen
 	memory     []byte
 	programPtr uint16
@@ -32,6 +33,7 @@ func NewChip8(screen *Screen) *Chip8 {
 	return &Chip8{
 		callStack:  []uint16{},
 		display:    NewDisplay(),
+		delayTimer: NewTimer(),
 		screen:     screen,
 		memory:     m,
 		programPtr: PROGRAM_OFFSET,

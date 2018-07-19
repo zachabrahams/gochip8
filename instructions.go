@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/rand"
 	"fmt"
 )
 
@@ -20,7 +21,7 @@ func (c8 *Chip8) execInstr() {
 	case lNib(instr[0]) == 0x1:
 		addr := getAddr(instr)
 		nextInstr = addr
-		// 2nnn - JP addr - pushes program counter +2 to the call stack and makes program counter = nnn
+	// 2nnn - JP addr - pushes program counter +2 to the call stack and makes program counter = nnn
 	case lNib(instr[0]) == 0x2:
 		c8.callStack = append(c8.callStack, c8.programPtr+2)
 		addr := getAddr(instr)
@@ -45,6 +46,16 @@ func (c8 *Chip8) execInstr() {
 	case lNib(instr[0]) == 0xA:
 		addr := getAddr(instr)
 		c8.regI = addr
+	// Cxkk - RND Vx, byte - generates a random byte, bitwise ANDs it with byte and
+	// stores the result in Vx
+	case lNib(instr[0]) == 0xC:
+		randBytes := make([]byte, 1, 1)
+		_, err := rand.Read(randBytes)
+		if err != nil {
+			panic(err)
+		}
+
+		c8.registers[rNib(instr[0])] = (instr[1] & randBytes[0])
 	// Dxyn - DRW Vx, Vy, nibble - grab an nibble length byte from I and draw it at the
 	// values of Vx and Vy. If at least one pixel is erased set VF to 1 otherwise to 0
 	// if a part of the sprite is located off screen - wrap it.
@@ -80,6 +91,12 @@ func (c8 *Chip8) execInstr() {
 				c8.registers[0xF] = 1
 			}
 		}
+	// Fx07 - LD Vx, DT - Set Vx to be the value of the delay timer
+	case lNib(instr[0]) == 0xF && instr[1] == 0x07:
+		c8.registers[rNib(instr[0])] = c8.delayTimer.Read()
+	// Fx15 - LD DT, Vx - Set the delay timer the the value of Vx
+	case lNib(instr[0]) == 0xF && instr[1] == 0x15:
+		c8.delayTimer.Set(c8.registers[rNib(instr[0])])
 	// Fx1E = ADD I, VX - Add Vx to I and store in I
 	case lNib(instr[0]) == 0xF && instr[1] == 0x1E:
 		c8.regI += uint16(c8.registers[rNib(instr[0])])

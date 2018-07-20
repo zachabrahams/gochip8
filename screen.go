@@ -30,9 +30,9 @@ func NewScreen() *Screen {
 	return &Screen{window: window}
 }
 
-func (s *Screen) Update(d *Display) {
+func (s *Screen) Update(fb *FrameBuffer) {
 	rects := []sdl.Rect{}
-	for i, line := range d.screen {
+	for i, line := range fb.buffer {
 		for j := 0; j < 64; j++ {
 			var bit uint64 = 1 << uint(63-j)
 			if (line & bit) > 0 {

@@ -10,9 +10,9 @@ func (c8 *Chip8) execInstr() {
 	instr := c8.memory[c8.programPtr:nextInstr]
 
 	switch {
-	// 00E0 - CLS - clear the display
+	// 00E0 - CLS - clear the frame buffer
 	case instr[0] == 0x00 && instr[1] == 0xE0:
-		c8.display.clear()
+		c8.frameBuffer.clear()
 	// 00EE RET returns from a subroutine
 	case instr[0] == 0x00 && instr[1] == 0xEE:
 		cs := c8.callStack
@@ -83,11 +83,11 @@ func (c8 *Chip8) execInstr() {
 				spriteRow = uint64(sprite[i]) << uint(xOffset)
 			}
 			y := (yOffset + byte(i)) % 32
-			currentRow := c8.display.screen[y]
+			currentRow := c8.frameBuffer.buffer[y]
 
 			collisionFree := currentRow | spriteRow
-			c8.display.screen[y] = currentRow ^ spriteRow
-			if collisionFree^c8.display.screen[y] > 0 && c8.registers[0xF] == 0 {
+			c8.frameBuffer.buffer[y] = currentRow ^ spriteRow
+			if collisionFree^c8.frameBuffer.buffer[y] > 0 && c8.registers[0xF] == 0 {
 				c8.registers[0xF] = 1
 			}
 		}

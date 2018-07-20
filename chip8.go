@@ -12,14 +12,14 @@ import (
 )
 
 type Chip8 struct {
-	callStack  []uint16
-	display    *Display
-	delayTimer *Timer
-	screen     *Screen
-	memory     []byte
-	programPtr uint16
-	registers  map[byte]byte
-	regI       uint16
+	callStack   []uint16
+	frameBuffer *FrameBuffer
+	delayTimer  *Timer
+	screen      *Screen
+	memory      []byte
+	programPtr  uint16
+	registers   map[byte]byte
+	regI        uint16
 }
 
 func NewChip8(screen *Screen) *Chip8 {
@@ -31,21 +31,21 @@ func NewChip8(screen *Screen) *Chip8 {
 	}
 
 	return &Chip8{
-		callStack:  []uint16{},
-		display:    NewDisplay(),
-		delayTimer: NewTimer(),
-		screen:     screen,
-		memory:     m,
-		programPtr: PROGRAM_OFFSET,
-		registers:  r,
-		regI:       0,
+		callStack:   []uint16{},
+		frameBuffer: NewFrameBuffer(),
+		delayTimer:  NewTimer(),
+		screen:      screen,
+		memory:      m,
+		programPtr:  PROGRAM_OFFSET,
+		registers:   r,
+		regI:        0,
 	}
 }
 
 func (c8 *Chip8) String() {
 	var msg bytes.Buffer
 	// msg.WriteString(hex.dump(c8.memory)
-	c8.display.bitDump()
+	c8.frameBuffer.bitDump()
 	msg.WriteString(fmt.Sprintf("Program Counter: %X (%d)\n", c8.programPtr, c8.programPtr))
 
 	instr := c8.memory[c8.programPtr : c8.programPtr+2]
@@ -88,7 +88,7 @@ func (c8 *Chip8) Run() {
 			tick++
 			// clearScreen()
 			// c8.String()
-			c8.screen.Update(c8.display)
+			c8.screen.Update(c8.frameBuffer)
 		}
 	}()
 

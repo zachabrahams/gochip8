@@ -87,7 +87,7 @@ func (c8 *Chip8) Run() {
 			c8.execInstr()
 			tick++
 			// clearScreen()
-			// c8.String()
+			c8.String()
 			c8.screen.Update(c8.frameBuffer)
 		}
 	}()

@@ -42,6 +42,27 @@ func (c8 *Chip8) execInstr() {
 	// 7xkk - ADD Vx, byte
 	case lNib(instr[0]) == 0x7:
 		c8.registers[rNib(instr[0])] += instr[1]
+	// 8xy0 - LD Vx, Vy - Set Vx to Vy
+	case lNib(instr[0]) == 0x8 && rNib(instr[1]) == 0x0:
+		c8.registers[rNib(instr[0])] = c8.registers[lNib(instr[1])]
+	// 8xy2 - AND Vx, Vy Sets Vx to Vx & Vy
+	case lNib(instr[0]) == 0x8 && rNib(instr[1]) == 0x2:
+		x := c8.registers[rNib(instr[0])]
+		y := c8.registers[lNib(instr[1])]
+		c8.registers[rNib(instr[0])] = x & y
+	// 8xy4 - ADD Vx, Vy - Sets Vx to Vx +  Vy and sets VF to 1 if there is an overflow, 0 otherwise.
+	case lNib(instr[0]) == 0x8 && rNib(instr[1]) == 0x4:
+		x := uint16(c8.registers[rNib(instr[0])])
+		y := uint16(c8.registers[lNib(instr[1])])
+		sum := x + y
+		if sum > 255 {
+			c8.registers[0xF] = 1
+			sum = 255
+		} else {
+			c8.registers[0xF] = 0
+		}
+
+		c8.registers[rNib(instr[0])] = byte(sum)
 	// Annn - LD I, addr - Load the int16 addr specified by nnn into the I register
 	case lNib(instr[0]) == 0xA:
 		addr := getAddr(instr)
@@ -100,6 +121,13 @@ func (c8 *Chip8) execInstr() {
 	// Fx1E = ADD I, VX - Add Vx to I and store in I
 	case lNib(instr[0]) == 0xF && instr[1] == 0x1E:
 		c8.regI += uint16(c8.registers[rNib(instr[0])])
+	// Fx65 = LD Vx, [I] Load values from I into registers V0 to Vx
+	case lNib(instr[0]) == 0xF && instr[1] == 0x65:
+		cursor := c8.regI
+		var i byte
+		for i = 0; i <= rNib(instr[0]); i++ {
+			c8.registers[i] = c8.memory[cursor+uint16(i)]
+		}
 	default:
 		msg := fmt.Sprintf("Unknown Instruction: %X\n", instr)
 		panic(msg)

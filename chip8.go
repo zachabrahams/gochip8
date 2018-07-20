@@ -80,7 +80,7 @@ func (c8 *Chip8) Load(filename string) {
 func (c8 *Chip8) Run() {
 	var wg sync.WaitGroup
 	wg.Add(1)
-	ticker := time.NewTicker(TICK_TIME * time.Millisecond)
+	ticker := time.NewTicker(CLOCK_TICK * time.Millisecond)
 	tick := 0
 	go func() {
 		for _ = range ticker.C {

@@ -25,7 +25,7 @@ func NewTimer() *Timer {
 	setVal := make(chan byte)
 	receiveVal := make(chan byte)
 
-	ticker := time.NewTicker(17 * time.Millisecond)
+	ticker := time.NewTicker(TIMER_TICK * time.Millisecond)
 	var val byte
 	val = 0
 

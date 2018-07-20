@@ -6,7 +6,8 @@ import (
 
 const (
 	PROGRAM_OFFSET = 512
-	TICK_TIME      = 17
+	CLOCK_TICK     = 10
+	TIMER_TICK     = 17
 )
 
 func main() {
@@ -14,7 +15,7 @@ func main() {
 	screen := NewScreen()
 	defer screen.Close()
 	c8 := NewChip8(screen)
-	c8.Load("/Users/zach/chip8/jumping_x_o.ch8")
+	c8.Load("/Users/zach/chip8/particle.ch8")
 	c8.Run()
 	fmt.Println("Closing Chip8 Emulator")
 }

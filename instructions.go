@@ -100,11 +100,15 @@ func (c8 *Chip8) execInstr() {
 	// Cxkk - RND Vx, byte - generates a random byte, bitwise ANDs it with byte and
 	// stores the result in Vx
 	case lHighI == 0xC:
+		if lowI == 0xFB {
+			panic("asdf")
+		}
 		randBytes := make([]byte, 1, 1)
 		_, err := rand.Read(randBytes)
 		if err != nil {
 			panic(err)
 		}
+		fmt.Printf("rand: %v\n", randBytes)
 
 		c8.registers[rHighI] = (lowI & randBytes[0])
 	// Dxyn - DRW Vx, Vy, nibble - grab an nibble length byte from I and draw it at the

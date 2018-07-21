@@ -7,7 +7,6 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"sync"
 	"time"
 )
 
@@ -15,14 +14,13 @@ type Chip8 struct {
 	callStack   []uint16
 	frameBuffer *FrameBuffer
 	delayTimer  *Timer
-	screen      *Screen
 	memory      []byte
 	programPtr  uint16
 	registers   map[byte]byte
 	regI        uint16
 }
 
-func NewChip8(screen *Screen) *Chip8 {
+func NewChip8() *Chip8 {
 	m := make([]byte, 4096, 4096)
 	r := map[byte]byte{}
 	// Registers 0-15 are for V0-VF.
@@ -34,7 +32,6 @@ func NewChip8(screen *Screen) *Chip8 {
 		callStack:   []uint16{},
 		frameBuffer: NewFrameBuffer(),
 		delayTimer:  NewTimer(),
-		screen:      screen,
 		memory:      m,
 		programPtr:  PROGRAM_OFFSET,
 		registers:   r,
@@ -78,8 +75,6 @@ func (c8 *Chip8) Load(filename string) {
 }
 
 func (c8 *Chip8) Run() {
-	var wg sync.WaitGroup
-	wg.Add(1)
 	ticker := time.NewTicker(CLOCK_TICK * time.Millisecond)
 	tick := 0
 	go func() {
@@ -87,12 +82,9 @@ func (c8 *Chip8) Run() {
 			c8.execInstr()
 			tick++
 			// clearScreen()
-			c8.String()
-			c8.screen.Update(c8.frameBuffer)
+			// c8.String()
 		}
 	}()
-
-	wg.Wait()
 }
 
 func clearScreen() {

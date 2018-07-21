@@ -11,11 +11,11 @@ type Screen struct {
 }
 
 func NewScreen() *Screen {
-	if err := sdl.Init(sdl.INIT_VIDEO); err != nil {
+	if err := sdl.Init(sdl.INIT_EVERYTHING); err != nil {
 		panic(err)
 	}
 
-	window, err := sdl.CreateWindow("gochip8", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, 64*SCALING_FACTOR, 32*SCALING_FACTOR, sdl.WINDOW_SHOWN|sdl.WINDOW_BORDERLESS)
+	window, err := sdl.CreateWindow("gochip8", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, 64*SCALING_FACTOR, 32*SCALING_FACTOR, sdl.WINDOW_INPUT_FOCUS|sdl.WINDOW_SHOWN)
 	if err != nil {
 		panic(err)
 	}
@@ -27,6 +27,8 @@ func NewScreen() *Screen {
 	surface.FillRect(nil, 0)
 
 	window.UpdateSurface()
+	window.Raise()
+
 	return &Screen{window: window}
 }
 
@@ -51,7 +53,6 @@ func (s *Screen) Update(fb *FrameBuffer) {
 	if err != nil {
 		panic(err)
 	}
-
 	if len(rects) > 0 {
 		surface.FillRect(nil, 0)
 		surface.FillRects(rects, 0xffffffff)

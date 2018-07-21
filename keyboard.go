@@ -1,39 +1,47 @@
 package main
 
-import (
-	"github.com/veandco/go-sdl2/sdl"
-)
-
 type Keyboard struct {
-	checkKey   chan int
+	checkKey   chan byte
+	anyKey     chan bool
 	keyPressed chan bool
 
-	getKey     chan bool
-	receiveKey chan int
+	newKeyboardState chan uint16
 }
 
 func NewKeyboard() *Keyboard {
-	var checkKey chan int
-	var keyPressed chan bool
+	checkKey := make(chan byte)
+	keyPressed := make(chan bool)
+	anyKey := make(chan bool)
 
-	var getKey chan bool
-	var receiveKey chan int
+	newKeyboardState := make(chan uint16)
 
+	var keys uint16
+	keys = 0
 	go func() {
 		for {
-			for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
-				switch event.(type) {
-				case *sdl.QuitEvent:
-					println("Quit")
-					break
+			select {
+			case keys = <-newKeyboardState:
+			case keyToCheck := <-checkKey:
+				if keys&(0x1<<keyToCheck) == uint16(0x1<<keyToCheck) {
+					keyPressed <- true
+				} else {
+					keyPressed <- false
+				}
+			case <-anyKey:
+				if keys != 0 {
+					keyPressed <- true
+				} else {
+					keyPressed <- false
 				}
 			}
 		}
 	}()
+
 	return &Keyboard{
 		checkKey:   checkKey,
+		anyKey:     anyKey,
 		keyPressed: keyPressed,
-		getKey:     getKey,
-		receiveKey: receiveKey,
+
+		newKeyboardState: newKeyboardState,
 	}
 }

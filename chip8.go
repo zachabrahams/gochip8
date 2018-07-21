@@ -14,13 +14,14 @@ type Chip8 struct {
 	callStack   []uint16
 	frameBuffer *FrameBuffer
 	delayTimer  *Timer
+	keyboard    *Keyboard
 	memory      []byte
 	programPtr  uint16
 	registers   map[byte]byte
 	regI        uint16
 }
 
-func NewChip8() *Chip8 {
+func NewChip8(kb *Keyboard) *Chip8 {
 	m := make([]byte, 4096, 4096)
 	r := map[byte]byte{}
 	// Registers 0-15 are for V0-VF.
@@ -32,6 +33,7 @@ func NewChip8() *Chip8 {
 		callStack:   []uint16{},
 		frameBuffer: NewFrameBuffer(),
 		delayTimer:  NewTimer(),
+		keyboard:    kb,
 		memory:      m,
 		programPtr:  PROGRAM_OFFSET,
 		registers:   r,
@@ -83,6 +85,9 @@ func (c8 *Chip8) Run() {
 			tick++
 			// clearScreen()
 			// c8.String()
+			c8.keyboard.anyKey <- true
+			pressed := <-c8.keyboard.keyPressed
+			fmt.Println(pressed)
 		}
 	}()
 }

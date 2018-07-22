@@ -8,8 +8,8 @@ import (
 
 const (
 	PROGRAM_OFFSET = 512
-	//CLOCK_TICK     = 10
-	CLOCK_TICK = 100
+	CLOCK_TICK     = 3
+	// CLOCK_TICK = 500
 	TIMER_TICK = 17
 )
 

@@ -45,3 +45,9 @@ func NewKeyboard() *Keyboard {
 		newKeyboardState: newKeyboardState,
 	}
 }
+
+func (k *Keyboard) isPressed(key byte) bool {
+	k.checkKey <- key
+	pressed := <-k.keyPressed
+	return pressed
+}

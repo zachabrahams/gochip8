@@ -19,6 +19,6 @@ func (fb *FrameBuffer) clear() {
 
 func (fb *FrameBuffer) bitDump() {
 	for _, line := range fb.buffer {
-		fmt.Printf("%064b\n", line)
+		fmt.Printf("%064b (%X, %d)\n", line, line, line)
 	}
 }

@@ -75,7 +75,18 @@ func (c8 *Chip8) execInstr() {
 		}
 
 		c8.registers[rHighI] = byte(sum)
-	// 8xy6 = SHR Vx, {, Vy}
+	// 8xy5 - SUB Vx, Vy - set Vx to Vx - Vy and VF = 1 iff Vx > Vy
+	case lHighI == 0x8 && rLowI == 0x5:
+		x := c8.registers[rHighI]
+		y := c8.registers[lLowI]
+		if x > y {
+			c8.registers[0xF] = 1
+		} else {
+			c8.registers[0xF] = 0
+		}
+
+		c8.registers[rHighI] = x - y
+	// 8xy6 - SHR Vx, {, Vy}
 	case lHighI == 0x8 && rLowI == 0x6:
 		if (c8.registers[rHighI] & 0x01) > 0 {
 			c8.registers[0xF] = 1
@@ -146,17 +157,27 @@ func (c8 *Chip8) execInstr() {
 				c8.registers[0xF] = 1
 			}
 		}
+	// ExA1 - SKNP Vx - Skips the next instruction if the key with Vxs value is not pressed
+	case lHighI == 0xE && lowI == 0xA1:
+		key := c8.registers[rHighI]
+		pressed := c8.keyboard.isPressed(key)
+		if !pressed {
+			nextInstr += 2
+		}
 	// Fx07 - LD Vx, DT - Set Vx to be the value of the delay timer
 	case lHighI == 0xF && lowI == 0x07:
 		c8.registers[rHighI] = c8.delayTimer.Read()
 	// Fx15 - LD DT, Vx - Set the delay timer the the value of Vx
 	case lHighI == 0xF && lowI == 0x15:
 		c8.delayTimer.Set(c8.registers[rHighI])
-	// Fx1E = ADD I, VX - Add Vx to I and store in I
+	// Fx18 - LD ST, Vx - set sound time to Vx's value
+	case lHighI == 0xF && lowI == 0x18:
+		//not implemented yet
+	// Fx1E - ADD I, VX - Add Vx to I and store in I
 	case lHighI == 0xF && lowI == 0x1E:
 		c8.regI += uint16(c8.registers[rHighI])
-		// Fx33 - LD B, Vx - Load BCD - Store 100's digit of B Vx value at I, 10s digit at I +1 and
-		// ones at I + 2
+	// Fx33 - LD B, Vx - Load BCD - Store 100's digit of B Vx value at I, 10s digit at I +1 and
+	// ones at I + 2
 	case lHighI == 0xF && lowI == 0x33:
 		ones := c8.registers[rHighI] % 10
 		tens := (c8.registers[rHighI] % 100) / 10

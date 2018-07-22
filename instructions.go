@@ -155,14 +155,28 @@ func (c8 *Chip8) execInstr() {
 	// Fx1E = ADD I, VX - Add Vx to I and store in I
 	case lHighI == 0xF && lowI == 0x1E:
 		c8.regI += uint16(c8.registers[rHighI])
-	// Fx55 = LD [I], Vx Load values from Vx into memory starting at I
+		// Fx33 - LD B, Vx - Load BCD - Store 100's digit of B Vx value at I, 10s digit at I +1 and
+		// ones at I + 2
+	case lHighI == 0xF && lowI == 0x33:
+		ones := c8.registers[rHighI] % 10
+		tens := (c8.registers[rHighI] % 100) / 10
+		hundreds := c8.registers[rHighI] / 100
+
+		c8.memory[c8.regI] = hundreds
+		c8.memory[c8.regI+1] = tens
+		c8.memory[c8.regI+2] = ones
+		// Fx29 - LD F, Vx - Set I to he logcation of the built in sprite for Vx's value
+	case lHighI == 0xF && lowI == 0x29:
+		// the built in sprites are stored at memory location 0, in order, with 5 bytes to a sprite.
+		c8.regI = uint16(c8.registers[rHighI] * 5)
+	// Fx55 - LD [I], Vx Load values from Vx into memory starting at I
 	case lHighI == 0xF && lowI == 0x55:
 		cursor := c8.regI
 		var i byte
 		for i = 0; i <= rHighI; i++ {
 			c8.memory[cursor+uint16(i)] = c8.registers[i]
 		}
-	// Fx65 = LD Vx, [I] Load values from I into registers V0 to Vx
+	// Fx65 - LD Vx, [I] Load values from I into registers V0 to Vx
 	case lHighI == 0xF && lowI == 0x65:
 		cursor := c8.regI
 		var i byte

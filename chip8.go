@@ -23,6 +23,7 @@ type Chip8 struct {
 
 func NewChip8(kb *Keyboard) *Chip8 {
 	m := make([]byte, 4096, 4096)
+	loadBuiltInSprites(m)
 	r := map[byte]byte{}
 	// Registers 0-15 are for V0-VF.
 	for i := 0; i < 16; i++ {
@@ -43,7 +44,7 @@ func NewChip8(kb *Keyboard) *Chip8 {
 
 func (c8 *Chip8) String() {
 	var msg bytes.Buffer
-	// msg.WriteString(hex.dump(c8.memory)
+	// msg.WriteString(hex.Dump(c8.memory))
 	c8.frameBuffer.bitDump()
 	msg.WriteString(fmt.Sprintf("Program Counter: %X (%d)\n", c8.programPtr, c8.programPtr))
 
@@ -85,9 +86,6 @@ func (c8 *Chip8) Run() {
 			tick++
 			// clearScreen()
 			// c8.String()
-			c8.keyboard.anyKey <- true
-			pressed := <-c8.keyboard.keyPressed
-			fmt.Println(pressed)
 		}
 	}()
 }
@@ -96,4 +94,32 @@ func clearScreen() {
 	cmd := exec.Command("clear")
 	cmd.Stdout = os.Stdout
 	cmd.Run()
+}
+
+func loadBuiltInSprites(m []byte) {
+	sprites := [][]byte{
+		[]byte{0xF0, 0x90, 0x90, 0x90, 0xF0}, // 0
+		[]byte{0x20, 0x60, 0x20, 0x20, 0x70}, // 1
+		[]byte{0xF0, 0x10, 0xF0, 0x80, 0xF0}, // 2
+		[]byte{0xF0, 0x10, 0xF0, 0x10, 0xF0}, // 3
+		[]byte{0x90, 0x90, 0xF0, 0x10, 0x10}, // 4
+		[]byte{0xF0, 0x80, 0xF0, 0x10, 0xF0}, // 5
+		[]byte{0xF0, 0x80, 0xF0, 0x90, 0xF0}, // 6
+		[]byte{0xF0, 0x10, 0x20, 0x40, 0x40}, // 7
+		[]byte{0xF0, 0x90, 0xF0, 0x90, 0xF0}, // 8
+		[]byte{0xF0, 0x90, 0xF0, 0x10, 0xF0}, // 9
+		[]byte{0xF0, 0x90, 0xF0, 0x90, 0x90}, // A
+		[]byte{0xE0, 0x90, 0xE0, 0x90, 0xE0}, // B
+		[]byte{0xF0, 0x80, 0x80, 0x80, 0xF0}, // C
+		[]byte{0xE0, 0x90, 0x90, 0x90, 0xE0}, // D
+		[]byte{0xF0, 0x80, 0xF0, 0x80, 0xF0}, // E
+		[]byte{0xF0, 0x80, 0xF0, 0x80, 0x80}, // F
+	}
+
+	// We load the sprites starting at memory 0x000, for easy fetching
+	for i, sprite := range sprites {
+		for j, line := range sprite {
+			m[(i*5)+j] = line
+		}
+	}
 }

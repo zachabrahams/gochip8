@@ -69,7 +69,7 @@ func (c8 *Chip8) execInstr() {
 		sum := x + y
 		if sum > 255 {
 			c8.registers[0xF] = 1
-			sum = 255
+			sum = sum & 255
 		} else {
 			c8.registers[0xF] = 0
 		}

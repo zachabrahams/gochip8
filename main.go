@@ -29,6 +29,11 @@ func main() {
 				println("Quit")
 				running = false
 				break
+			case *sdl.KeyboardEvent:
+				kevent := event.(*sdl.KeyboardEvent)
+				if kevent.Type == sdl.KEYUP && kevent.Keysym.Sym == sdl.K_PERIOD {
+					//	c8.step <- true
+				}
 			}
 		}
 		kbState := sdl.GetKeyboardState()

@@ -19,6 +19,7 @@ type Chip8 struct {
 	programPtr  uint16
 	registers   map[byte]byte
 	regI        uint16
+	step        chan bool
 }
 
 func NewChip8(kb *Keyboard) *Chip8 {
@@ -39,6 +40,7 @@ func NewChip8(kb *Keyboard) *Chip8 {
 		programPtr:  PROGRAM_OFFSET,
 		registers:   r,
 		regI:        0,
+		step:        make(chan bool),
 	}
 }
 
@@ -86,6 +88,7 @@ func (c8 *Chip8) Run() {
 			tick++
 			// clearScreen()
 			c8.String()
+			//<-c8.step
 		}
 	}()
 }

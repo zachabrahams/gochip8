@@ -119,7 +119,6 @@ func (c8 *Chip8) execInstr() {
 		if err != nil {
 			panic(err)
 		}
-		fmt.Printf("rand: %v\n", randBytes)
 
 		c8.registers[rHighI] = (lowI & randBytes[0])
 	// Dxyn - DRW Vx, Vy, nibble - grab an nibble length byte from I and draw it at the
@@ -167,6 +166,17 @@ func (c8 *Chip8) execInstr() {
 	// Fx07 - LD Vx, DT - Set Vx to be the value of the delay timer
 	case lHighI == 0xF && lowI == 0x07:
 		c8.registers[rHighI] = c8.delayTimer.Read()
+	// Fx0A - LD Vx K - pause until a key is pressed and store the key in Vx
+	case lHighI == 0xF && lowI == 0x0A:
+		key := byte(0xFF)
+		for {
+			key = c8.keyboard.nextPress()
+			if key != 0xFF {
+				fmt.Println(key)
+				break
+			}
+		}
+		c8.registers[rHighI] = key
 	// Fx15 - LD DT, Vx - Set the delay timer the the value of Vx
 	case lHighI == 0xF && lowI == 0x15:
 		c8.delayTimer.Set(c8.registers[rHighI])

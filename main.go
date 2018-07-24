@@ -19,7 +19,7 @@ func main() {
 	defer screen.Close()
 	kb := NewKeyboard()
 	c8 := NewChip8(kb)
-	c8.Load("/Users/zach/chip8/space_intercept-1978.ch8")
+	c8.Load("/Users/zach/chip8/frame_mk1.ch8")
 	c8.Run()
 	running := true
 	for running {

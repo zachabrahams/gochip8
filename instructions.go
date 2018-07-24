@@ -57,11 +57,21 @@ func (c8 *Chip8) execInstr() {
 	// 8xy0 - LD Vx, Vy - Set Vx to Vy
 	case lHighI == 0x8 && rLowI == 0x0:
 		c8.registers[rHighI] = c8.registers[lLowI]
+	// 8xy1 - OR Vx, Vy
+	case lHighI == 0x8 && rLowI == 0x1:
+		x := c8.registers[rHighI]
+		y := c8.registers[lLowI]
+		c8.registers[rHighI] = x | y
 	// 8xy2 - AND Vx, Vy Sets Vx to Vx & Vy
 	case lHighI == 0x8 && rLowI == 0x2:
 		x := c8.registers[rHighI]
 		y := c8.registers[lLowI]
 		c8.registers[rHighI] = x & y
+	// 8xy3 - XOR Vx, Vy
+	case lHighI == 0x8 && rLowI == 0x3:
+		x := c8.registers[rHighI]
+		y := c8.registers[lLowI]
+		c8.registers[rHighI] = x ^ y
 	// 8xy4 - ADD Vx, Vy - Sets Vx to Vx +  Vy and sets VF to 1 if there is an overflow, 0 otherwise.
 	case lHighI == 0x8 && rLowI == 0x4:
 		x := uint16(c8.registers[rHighI])
@@ -95,6 +105,17 @@ func (c8 *Chip8) execInstr() {
 		}
 
 		c8.registers[rHighI] = c8.registers[rHighI] >> 1
+	// 8xy7 - SUBN Vx, Vy - Set VF = 1 IFF Vy < Vx, Vx = Vy - Vx
+	case lHighI == 0x8 && rLowI == 0x7:
+		x := c8.registers[rHighI]
+		y := c8.registers[lLowI]
+		if y > x {
+			c8.registers[0xF] = 1
+		} else {
+			c8.registers[0xF] = 0
+		}
+
+		c8.registers[rHighI] = y - x
 	// 8xyE - SHL Vx {, Vy}
 	case lHighI == 0x8 && rLowI == 0xE:
 		if (c8.registers[rHighI] & 0x80) > 0 {
@@ -104,10 +125,18 @@ func (c8 *Chip8) execInstr() {
 		}
 
 		c8.registers[rHighI] = c8.registers[rHighI] << 1
+	// 9xy0 - SNE Vx, Vy - Skip next if Vx != Vy
+	case lHighI == 0x9:
+		if c8.registers[rHighI] != c8.registers[lLowI] {
+			nextInstr += 2
+		}
 	// Annn - LD I, addr - Load the int16 addr specified by nnn into the I register
 	case lHighI == 0xA:
 		addr := getAddr(instr)
 		c8.regI = addr
+	// Bnnn - JP V0,  addr - Jump to location nnn + V0
+	case lHighI == 0xB:
+		nextInstr = getAddr(instr) + uint16(c8.registers[0x0])
 	// Cxkk - RND Vx, byte - generates a random byte, bitwise ANDs it with byte and
 	// stores the result in Vx
 	case lHighI == 0xC:
@@ -155,6 +184,13 @@ func (c8 *Chip8) execInstr() {
 			if collisionFree^c8.frameBuffer.buffer[y] > 0 && c8.registers[0xF] == 0 {
 				c8.registers[0xF] = 1
 			}
+		}
+		// Ex9E -  SKP Vx - Skip next instruction if key with the value of Vx is pressed
+	case lHighI == 0xE && lowI == 0x9E:
+		key := c8.registers[rHighI]
+		pressed := c8.keyboard.isPressed(key)
+		if pressed {
+			nextInstr += 2
 		}
 	// ExA1 - SKNP Vx - Skips the next instruction if the key with Vxs value is not pressed
 	case lHighI == 0xE && lowI == 0xA1:

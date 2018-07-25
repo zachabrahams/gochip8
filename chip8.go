@@ -13,6 +13,7 @@ import (
 type Chip8 struct {
 	callStack   []uint16
 	frameBuffer *FrameBuffer
+	beepTimer   *Timer
 	delayTimer  *Timer
 	keyboard    *Keyboard
 	memory      []byte
@@ -22,7 +23,7 @@ type Chip8 struct {
 	step        chan bool
 }
 
-func NewChip8(kb *Keyboard) *Chip8 {
+func NewChip8(kb *Keyboard, b Beeper) *Chip8 {
 	m := make([]byte, 4096, 4096)
 	loadBuiltInSprites(m)
 	r := map[byte]byte{}
@@ -34,7 +35,8 @@ func NewChip8(kb *Keyboard) *Chip8 {
 	return &Chip8{
 		callStack:   []uint16{},
 		frameBuffer: NewFrameBuffer(),
-		delayTimer:  NewTimer(),
+		beepTimer:   NewTimer(func() { b.Beep() }),
+		delayTimer:  NewTimer(func() {}),
 		keyboard:    kb,
 		memory:      m,
 		programPtr:  PROGRAM_OFFSET,

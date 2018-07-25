@@ -8,18 +8,21 @@ import (
 
 const (
 	PROGRAM_OFFSET = 512
-	CLOCK_TICK     = 3
-	// CLOCK_TICK = 500
-	TIMER_TICK = 17
+	CLOCK_TICK     = 2
+	TIMER_TICK     = 17
 )
 
 func main() {
 	fmt.Println("Starting Chip8 Emulator")
 	screen := NewScreen()
 	defer screen.Close()
+
+	beeper := NewSDLBeeper()
+	defer beeper.Close()
+
 	kb := NewKeyboard()
-	c8 := NewChip8(kb)
-	c8.Load("/Users/zach/chip8/frame_mk1.ch8")
+	c8 := NewChip8(kb, beeper)
+	c8.Load("/Users/zach/chip8/pong.ch8")
 	c8.Run()
 	running := true
 	for running {

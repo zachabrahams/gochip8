@@ -20,7 +20,7 @@ func (t *Timer) Set(newVal byte) {
 	t.setVal <- newVal
 }
 
-func NewTimer() *Timer {
+func NewTimer(cb func()) *Timer {
 	getVal := make(chan bool)
 	setVal := make(chan byte)
 	receiveVal := make(chan byte)
@@ -39,6 +39,9 @@ func NewTimer() *Timer {
 			case <-ticker.C:
 				if val > 0 {
 					val--
+					if val == 0 {
+						cb()
+					}
 				}
 			}
 		}

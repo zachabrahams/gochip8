@@ -218,7 +218,7 @@ func (c8 *Chip8) execInstr() {
 		c8.delayTimer.Set(c8.registers[rHighI])
 	// Fx18 - LD ST, Vx - set sound time to Vx's value
 	case lHighI == 0xF && lowI == 0x18:
-		//not implemented yet
+		c8.beepTimer.Set(c8.registers[rHighI])
 	// Fx1E - ADD I, VX - Add Vx to I and store in I
 	case lHighI == 0xF && lowI == 0x1E:
 		c8.regI += uint16(c8.registers[rHighI])
@@ -232,7 +232,7 @@ func (c8 *Chip8) execInstr() {
 		c8.memory[c8.regI] = hundreds
 		c8.memory[c8.regI+1] = tens
 		c8.memory[c8.regI+2] = ones
-		// Fx29 - LD F, Vx - Set I to he logcation of the built in sprite for Vx's value
+	// Fx29 - LD F, Vx - Set I to he logcation of the built in sprite for Vx's value
 	case lHighI == 0xF && lowI == 0x29:
 		// the built in sprites are stored at memory location 0, in order, with 5 bytes to a sprite.
 		c8.regI = uint16(c8.registers[rHighI] * 5)

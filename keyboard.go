@@ -32,8 +32,8 @@ func NewKeyboard() *Keyboard {
 				}
 			case <-anyKey:
 				pressed := false
-				for i := 0; i < 8; i++ {
-					if (keys & (1 << uint8(i))) > 0 {
+				for i := 0; i < 16; i++ {
+					if (keys & (0x1 << uint16(i))) > 0 {
 						nextKey <- byte(i)
 						pressed = true
 						break

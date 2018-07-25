@@ -185,7 +185,7 @@ func (c8 *Chip8) execInstr() {
 				c8.registers[0xF] = 1
 			}
 		}
-		// Ex9E -  SKP Vx - Skip next instruction if key with the value of Vx is pressed
+	// Ex9E -  SKP Vx - Skip next instruction if key with the value of Vx is pressed
 	case lHighI == 0xE && lowI == 0x9E:
 		key := c8.registers[rHighI]
 		pressed := c8.keyboard.isPressed(key)
@@ -208,7 +208,6 @@ func (c8 *Chip8) execInstr() {
 		for {
 			key = c8.keyboard.nextPress()
 			if key != 0xFF {
-				fmt.Println(key)
 				break
 			}
 		}

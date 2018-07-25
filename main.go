@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/veandco/go-sdl2/sdl"
 )
@@ -14,6 +15,9 @@ const (
 
 func main() {
 	fmt.Println("Starting Chip8 Emulator")
+
+	programFile := os.Args[1]
+
 	screen := NewScreen()
 	defer screen.Close()
 
@@ -22,7 +26,7 @@ func main() {
 
 	kb := NewKeyboard()
 	c8 := NewChip8(kb, beeper)
-	c8.Load("/Users/zach/chip8/pong.ch8")
+	c8.Load(programFile)
 	c8.Run()
 	running := true
 	for running {

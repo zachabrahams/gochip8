@@ -17,8 +17,11 @@ func (fb *FrameBuffer) clear() {
 	}
 }
 
-func (fb *FrameBuffer) bitDump() {
+func (fb *FrameBuffer) String() string {
+	display := ""
 	for _, line := range fb.buffer {
-		fmt.Printf("%064b (%X, %d)\n", line, line, line)
+		display = fmt.Sprintf("%s%064b (%X, %d)\n", display, line, line, line)
 	}
+
+	return display
 }

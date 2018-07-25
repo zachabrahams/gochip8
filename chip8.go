@@ -6,50 +6,75 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"os/exec"
 	"time"
 )
 
+// Chip8 is the struct that represents a full Chip8 VM
+// The attribues are:
+//
+// beepTimer: A timer that counts down at 60hz and beeps when it reaches 0
+//
+// callStack: A stack of addresses to return to from subroutines
+//
+// deplayTimer: A timer that counts down at 60 hz
+//
+// frameBuffer: A representation of the current state of the screen
+//
+// keyboard: A representation of the current state of the keyboard
+//
+// memory: a 4kb byte slice reprsenting the memory available to the system
+//
+// programPtr: the register that points to the next instruction to run
+//
+// regI: the 16 bit I register - used for storing the location of sprites
+//
+// registers: An array of the 16 8-bit registesr used by the CPU.
+// They are named V0-VF.
+//
+// step: a channel for doing hacky debugging - should be refactored away.
 type Chip8 struct {
-	callStack   []uint16
-	frameBuffer *FrameBuffer
 	beepTimer   *Timer
+	callStack   []uint16
 	delayTimer  *Timer
+	frameBuffer *FrameBuffer
 	keyboard    *Keyboard
 	memory      []byte
 	programPtr  uint16
-	registers   map[byte]byte
 	regI        uint16
+	registers   map[byte]byte
 	step        chan bool
 }
 
+// NewChip8 accepts a keyboard and a beeper and returns a pointer to a full
+// Chip8.
 func NewChip8(kb *Keyboard, b Beeper) *Chip8 {
 	m := make([]byte, 4096, 4096)
 	loadBuiltInSprites(m)
 	r := map[byte]byte{}
-	// Registers 0-15 are for V0-VF.
 	for i := 0; i < 16; i++ {
 		r[byte(i)] = byte(0)
 	}
 
 	return &Chip8{
-		callStack:   []uint16{},
-		frameBuffer: NewFrameBuffer(),
 		beepTimer:   NewTimer(func() { b.Beep() }),
+		callStack:   []uint16{},
 		delayTimer:  NewTimer(func() {}),
+		frameBuffer: NewFrameBuffer(),
 		keyboard:    kb,
 		memory:      m,
 		programPtr:  PROGRAM_OFFSET,
-		registers:   r,
 		regI:        0,
+		registers:   r,
 		step:        make(chan bool),
 	}
 }
 
+// String provides a text representation fof the current state of the Chip8.
 func (c8 *Chip8) String() {
 	var msg bytes.Buffer
+	// Uncomment the following to get a hex dump of the entire memory stack
 	// msg.WriteString(hex.Dump(c8.memory))
-	c8.frameBuffer.bitDump()
+	msg.WriteString(c8.frameBuffer.String())
 	msg.WriteString(fmt.Sprintf("Program Counter: %X (%d)\n", c8.programPtr, c8.programPtr))
 
 	instr := c8.memory[c8.programPtr : c8.programPtr+2]
@@ -63,6 +88,7 @@ func (c8 *Chip8) String() {
 	fmt.Println(msg.String())
 }
 
+// Load is used to load a Chip8 program into memory from a system file.
 func (c8 *Chip8) Load(filename string) {
 	fmt.Printf("Loading Program From File: %s\n", filename)
 	file, err := os.Open(filename)
@@ -81,24 +107,16 @@ func (c8 *Chip8) Load(filename string) {
 	fmt.Printf("Finshed loading program. Loaded %d bytes\n", len(binData))
 }
 
+// Run creates a ticker using the CLOCK_TICK variable and executes an instruction on every tick.
 func (c8 *Chip8) Run() {
 	ticker := time.NewTicker(CLOCK_TICK * time.Millisecond)
-	tick := 0
 	go func() {
 		for _ = range ticker.C {
 			c8.execInstr()
-			tick++
-			// clearScreen()
 			//c8.String()
 			//<-c8.step
 		}
 	}()
-}
-
-func clearScreen() {
-	cmd := exec.Command("clear")
-	cmd.Stdout = os.Stdout
-	cmd.Run()
 }
 
 func loadBuiltInSprites(m []byte) {

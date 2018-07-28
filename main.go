@@ -5,12 +5,7 @@ import (
 	"os"
 
 	"github.com/veandco/go-sdl2/sdl"
-)
-
-const (
-	PROGRAM_OFFSET = 512
-	CLOCK_TICK     = 2
-	TIMER_TICK     = 17
+	"github.com/zachabrahams/gochip8/chip8"
 )
 
 func main() {
@@ -24,8 +19,8 @@ func main() {
 	beeper := NewSDLBeeper()
 	defer beeper.Close()
 
-	kb := NewKeyboard()
-	c8 := NewChip8(kb, beeper)
+	kb := chip8.NewKeyboard()
+	c8 := chip8.NewChip8(kb, beeper)
 	c8.Load(programFile)
 	c8.Run()
 	running := true
@@ -46,8 +41,8 @@ func main() {
 		kbState := sdl.GetKeyboardState()
 		newKBState := parseKbState(kbState)
 
-		kb.newKeyboardState <- newKBState
-		screen.Update(c8.frameBuffer)
+		kb.NewKeyboardState <- newKBState
+		screen.Update(c8.FrameBuffer)
 	}
 	fmt.Println("Closing Chip8 Emulator")
 }

@@ -1,25 +1,25 @@
-package main
+package chip8
 
 import "fmt"
 
 type FrameBuffer struct {
-	buffer []uint64
+	Buffer []uint64
 }
 
 func NewFrameBuffer() *FrameBuffer {
 	b := make([]uint64, 32, 32)
-	return &FrameBuffer{buffer: b}
+	return &FrameBuffer{Buffer: b}
 }
 
 func (fb *FrameBuffer) clear() {
-	for i := range fb.buffer {
-		fb.buffer[i] = 0
+	for i := range fb.Buffer {
+		fb.Buffer[i] = 0
 	}
 }
 
 func (fb *FrameBuffer) String() string {
 	display := ""
-	for _, line := range fb.buffer {
+	for _, line := range fb.Buffer {
 		display = fmt.Sprintf("%s%064b (%X, %d)\n", display, line, line, line)
 	}
 

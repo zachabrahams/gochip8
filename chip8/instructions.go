@@ -1,4 +1,4 @@
-package main
+package chip8
 
 import (
 	"crypto/rand"
@@ -19,7 +19,7 @@ func (c8 *Chip8) execInstr() {
 	switch {
 	// 00E0 - CLS - clear the frame buffer
 	case highI == 0x00 && lowI == 0xE0:
-		c8.frameBuffer.clear()
+		c8.FrameBuffer.clear()
 	// 00EE RET returns from a subroutine
 	case highI == 0x00 && lowI == 0xEE:
 		cs := c8.callStack
@@ -177,11 +177,11 @@ func (c8 *Chip8) execInstr() {
 				spriteRow = uint64(sprite[i]) << uint(xOffset)
 			}
 			y := (yOffset + byte(i)) % 32
-			currentRow := c8.frameBuffer.buffer[y]
+			currentRow := c8.FrameBuffer.Buffer[y]
 
 			collisionFree := currentRow | spriteRow
-			c8.frameBuffer.buffer[y] = currentRow ^ spriteRow
-			if collisionFree^c8.frameBuffer.buffer[y] > 0 && c8.registers[0xF] == 0 {
+			c8.FrameBuffer.Buffer[y] = currentRow ^ spriteRow
+			if collisionFree^c8.FrameBuffer.Buffer[y] > 0 && c8.registers[0xF] == 0 {
 				c8.registers[0xF] = 1
 			}
 		}

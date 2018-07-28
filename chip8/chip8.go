@@ -1,4 +1,4 @@
-package main
+package chip8
 
 import (
 	"bytes"
@@ -7,6 +7,12 @@ import (
 	"log"
 	"os"
 	"time"
+)
+
+const (
+	PROGRAM_OFFSET = 512
+	CLOCK_TICK     = 2
+	TIMER_TICK     = 17
 )
 
 // Chip8 is the struct that represents a full Chip8 VM
@@ -18,7 +24,7 @@ import (
 //
 // deplayTimer: A timer that counts down at 60 hz
 //
-// frameBuffer: A representation of the current state of the screen
+// FrameBuffer: A representation of the current state of the screen
 //
 // keyboard: A representation of the current state of the keyboard
 //
@@ -36,7 +42,7 @@ type Chip8 struct {
 	beepTimer   *Timer
 	callStack   []uint16
 	delayTimer  *Timer
-	frameBuffer *FrameBuffer
+	FrameBuffer *FrameBuffer
 	keyboard    *Keyboard
 	memory      []byte
 	programPtr  uint16
@@ -59,7 +65,7 @@ func NewChip8(kb *Keyboard, b Beeper) *Chip8 {
 		beepTimer:   NewTimer(func() { b.Beep() }),
 		callStack:   []uint16{},
 		delayTimer:  NewTimer(func() {}),
-		frameBuffer: NewFrameBuffer(),
+		FrameBuffer: NewFrameBuffer(),
 		keyboard:    kb,
 		memory:      m,
 		programPtr:  PROGRAM_OFFSET,
@@ -74,7 +80,7 @@ func (c8 *Chip8) String() {
 	var msg bytes.Buffer
 	// Uncomment the following to get a hex dump of the entire memory stack
 	// msg.WriteString(hex.Dump(c8.memory))
-	msg.WriteString(c8.frameBuffer.String())
+	msg.WriteString(c8.FrameBuffer.String())
 	msg.WriteString(fmt.Sprintf("Program Counter: %X (%d)\n", c8.programPtr, c8.programPtr))
 
 	instr := c8.memory[c8.programPtr : c8.programPtr+2]

@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/veandco/go-sdl2/sdl"
+	"github.com/zachabrahams/gochip8/chip8"
 )
 
 const SCALING_FACTOR = 10
@@ -32,9 +33,9 @@ func NewScreen() *Screen {
 	return &Screen{window: window}
 }
 
-func (s *Screen) Update(fb *FrameBuffer) {
+func (s *Screen) Update(fb *chip8.FrameBuffer) {
 	rects := []sdl.Rect{}
-	for i, line := range fb.buffer {
+	for i, line := range fb.Buffer {
 		for j := 0; j < 64; j++ {
 			var bit uint64 = 1 << uint(63-j)
 			if (line & bit) > 0 {

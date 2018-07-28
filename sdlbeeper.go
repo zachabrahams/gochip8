@@ -8,11 +8,6 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 )
 
-type Beeper interface {
-	Beep()
-	Close()
-}
-
 type SDLBeeper struct {
 	data []byte
 }

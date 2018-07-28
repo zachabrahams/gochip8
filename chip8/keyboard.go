@@ -1,4 +1,4 @@
-package main
+package chip8
 
 type Keyboard struct {
 	checkKey   chan byte
@@ -6,7 +6,7 @@ type Keyboard struct {
 	nextKey    chan byte
 	keyPressed chan bool
 
-	newKeyboardState chan uint16
+	NewKeyboardState chan uint16
 }
 
 func NewKeyboard() *Keyboard {
@@ -53,7 +53,7 @@ func NewKeyboard() *Keyboard {
 		keyPressed: keyPressed,
 
 		nextKey:          nextKey,
-		newKeyboardState: newKeyboardState,
+		NewKeyboardState: newKeyboardState,
 	}
 }
 

@@ -26,7 +26,7 @@ const (
 //
 // FrameBuffer: A representation of the current state of the screen
 //
-// keyboard: A representation of the current state of the keyboard
+// Keyboard: A representation of the current state of the keyboard
 //
 // memory: a 4kb byte slice reprsenting the memory available to the system
 //
@@ -43,7 +43,7 @@ type Chip8 struct {
 	callStack   []uint16
 	delayTimer  *Timer
 	FrameBuffer *FrameBuffer
-	keyboard    *Keyboard
+	Keyboard    *Keyboard
 	memory      []byte
 	programPtr  uint16
 	regI        uint16
@@ -53,7 +53,7 @@ type Chip8 struct {
 
 // NewChip8 accepts a keyboard and a beeper and returns a pointer to a full
 // Chip8.
-func NewChip8(kb *Keyboard, b Beeper) *Chip8 {
+func NewChip8(b Beeper) *Chip8 {
 	m := make([]byte, 4096, 4096)
 	loadBuiltInSprites(m)
 	r := map[byte]byte{}
@@ -66,7 +66,7 @@ func NewChip8(kb *Keyboard, b Beeper) *Chip8 {
 		callStack:   []uint16{},
 		delayTimer:  NewTimer(func() {}),
 		FrameBuffer: NewFrameBuffer(),
-		keyboard:    kb,
+		Keyboard:    NewKeyboard(),
 		memory:      m,
 		programPtr:  PROGRAM_OFFSET,
 		regI:        0,

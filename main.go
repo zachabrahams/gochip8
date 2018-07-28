@@ -19,8 +19,7 @@ func main() {
 	beeper := NewSDLBeeper()
 	defer beeper.Close()
 
-	kb := chip8.NewKeyboard()
-	c8 := chip8.NewChip8(kb, beeper)
+	c8 := chip8.NewChip8(beeper)
 	c8.Load(programFile)
 	c8.Run()
 	running := true
@@ -41,7 +40,7 @@ func main() {
 		kbState := sdl.GetKeyboardState()
 		newKBState := parseKbState(kbState)
 
-		kb.NewKeyboardState <- newKBState
+		c8.Keyboard.Update(newKBState)
 		screen.Update(c8.FrameBuffer)
 	}
 	fmt.Println("Closing Chip8 Emulator")

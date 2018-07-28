@@ -1,70 +1,48 @@
 package chip8
 
-type Keyboard struct {
-	checkKey   chan byte
-	anyKey     chan bool
-	nextKey    chan byte
-	keyPressed chan bool
+import "sync"
 
-	NewKeyboardState chan uint16
+type Keyboard struct {
+	mutex *sync.Mutex
+	state uint16
 }
 
 func NewKeyboard() *Keyboard {
-	checkKey := make(chan byte)
-	keyPressed := make(chan bool)
 
-	anyKey := make(chan bool)
-	nextKey := make(chan byte)
-
-	newKeyboardState := make(chan uint16)
-
-	var keys uint16
-	keys = 0
-	go func() {
-		for {
-			select {
-			case keys = <-newKeyboardState:
-			case keyToCheck := <-checkKey:
-				if keys&(0x1<<keyToCheck) == uint16(0x1<<keyToCheck) {
-					keyPressed <- true
-				} else {
-					keyPressed <- false
-				}
-			case <-anyKey:
-				pressed := false
-				for i := 0; i < 16; i++ {
-					if (keys & (0x1 << uint16(i))) > 0 {
-						nextKey <- byte(i)
-						pressed = true
-						break
-					}
-				}
-
-				if !pressed {
-					nextKey <- byte(255)
-				}
-			}
-		}
-	}()
+	mutex := &sync.Mutex{}
+	var state uint16 = 0
 
 	return &Keyboard{
-		checkKey:   checkKey,
-		anyKey:     anyKey,
-		keyPressed: keyPressed,
-
-		nextKey:          nextKey,
-		NewKeyboardState: newKeyboardState,
+		mutex: mutex,
+		state: state,
 	}
 }
 
+func (k *Keyboard) Update(newState uint16) {
+	k.mutex.Lock()
+	k.state = newState
+	k.mutex.Unlock()
+}
+
 func (k *Keyboard) isPressed(key byte) bool {
-	k.checkKey <- key
-	pressed := <-k.keyPressed
-	return pressed
+	k.mutex.Lock()
+	defer k.mutex.Unlock()
+	if k.state&(0x1<<key) == uint16(0x1<<key) {
+		return true
+	}
+
+	return false
 }
 
 func (k *Keyboard) nextPress() byte {
-	k.anyKey <- true
-	pressed := <-k.nextKey
-	return pressed
+	k.mutex.Lock()
+	keys := k.state
+	k.mutex.Unlock()
+	for i := 0; i < 16; i++ {
+		if (keys & (0x1 << uint16(i))) > 0 {
+			return byte(i)
+		}
+	}
+
+	return byte(255)
 }

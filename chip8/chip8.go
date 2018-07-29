@@ -106,6 +106,9 @@ func (c8 *Chip8) Load(filename string) {
 	if err != nil {
 		log.Fatalf("error reading data from file: %v")
 	}
+	builder := disassemble(binData, 0x200)
+	fmt.Println(builder.String())
+	panic("done")
 
 	for i := 0; i < len(binData); i++ {
 		c8.memory[PROGRAM_OFFSET+i] = binData[i]

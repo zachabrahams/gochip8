@@ -28,7 +28,7 @@ func (c8 *Chip8) execInstr() {
 	case lHighI == 0x1:
 		addr := getAddr(instr)
 		nextInstr = addr
-	// 2nnn - JP addr - pushes program counter +2 to the call stack and makes program counter = nnn
+	// 2nnn - CALL  addr - pushes program counter +2 to the call stack and makes program counter = nnn
 	case lHighI == 0x2:
 		c8.callStack = append(c8.callStack, c8.programPtr+2)
 		addr := getAddr(instr)

@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"os/exec"
 	"time"
 )
 
@@ -104,8 +105,11 @@ func (c8 *Chip8) String() {
 	instr := c8.memory[c8.programPtr : c8.programPtr+2]
 	msg.WriteString(fmt.Sprintf("Instr: %X %v\n", instr, instr))
 	msg.WriteString("Registers:\n")
-	for i := 0; i < 16; i++ {
-		msg.WriteString(fmt.Sprintf("V%X: %02X (%d)\n", i, c8.registers[byte(i)], c8.registers[byte(i)]))
+	for i := 0; i < 16; i += 2 {
+		reg1 := fmt.Sprintf("V%X: %02X (%d)", i, c8.registers[byte(i)], c8.registers[byte(i)])
+		reg2 := fmt.Sprintf("V%X: %02X (%d)", i+1, c8.registers[byte(i+1)], c8.registers[byte(i+1)])
+
+		msg.WriteString(fmt.Sprintf("%-20s%-20s\n", reg1, reg2))
 	}
 	msg.WriteString(fmt.Sprintf("I: %03X (%d)\n", c8.regI, c8.regI))
 	msg.WriteString(fmt.Sprintf("Call Stack: %v", c8.callStack))
@@ -137,6 +141,7 @@ func (c8 *Chip8) Run() {
 	go func() {
 		for _ = range ticker.C {
 			c8.execInstr()
+			clearScreen()
 			c8.String()
 			select {
 			case <-c8.Stop:
@@ -144,6 +149,7 @@ func (c8 *Chip8) Run() {
 					select {
 					case <-c8.Step:
 						c8.execInstr()
+						clearScreen()
 						c8.String()
 					case <-c8.Restart:
 						debug = false
@@ -181,4 +187,10 @@ func loadBuiltInSprites(m []byte) {
 			m[(i*5)+j] = line
 		}
 	}
+}
+
+func clearScreen() {
+	c := exec.Command("clear")
+	c.Stdout = os.Stdout
+	c.Run()
 }

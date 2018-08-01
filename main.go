@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 
 	"github.com/veandco/go-sdl2/sdl"
@@ -9,9 +10,43 @@ import (
 )
 
 func main() {
-	fmt.Println("Starting Chip8 Emulator")
+	subcommand := os.Args[1]
+	if subcommand == "" {
+		panic("need subcommand: run or dis")
+	}
+	programFile := os.Args[2]
+	if programFile == "" {
+		panic("no program file given")
+	}
 
-	programFile := os.Args[1]
+	switch subcommand {
+	case "run":
+		run(programFile)
+	case "dis":
+		dis(programFile)
+	default:
+		panic("unknown command")
+	}
+
+}
+
+func dis(programFile string) {
+	file, err := os.Open(programFile)
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+	program, err := ioutil.ReadAll(file)
+	if err != nil {
+		panic(err)
+	}
+	builder := chip8.Disassemble(program, 0x200)
+	fmt.Println(builder.String())
+}
+
+func run(programFile string) {
+	var s struct{}
+	fmt.Println("Starting Chip8 Emulator")
 
 	screen := NewScreen()
 	defer screen.Close()
@@ -33,7 +68,19 @@ func main() {
 			case *sdl.KeyboardEvent:
 				kevent := event.(*sdl.KeyboardEvent)
 				if kevent.Type == sdl.KEYUP && kevent.Keysym.Sym == sdl.K_PERIOD {
-					//	c8.step <- true
+					c8.Step <- s
+					kbState := sdl.GetKeyboardState()
+					newKBState := parseKbState(kbState)
+
+					c8.Keyboard.Update(newKBState)
+					screen.Update(c8.FrameBuffer)
+
+				}
+				if kevent.Type == sdl.KEYUP && kevent.Keysym.Sym == sdl.K_SLASH {
+					c8.Stop <- s
+				}
+				if kevent.Type == sdl.KEYUP && kevent.Keysym.Sym == sdl.K_COMMA {
+					c8.Restart <- s
 				}
 			}
 		}

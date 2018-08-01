@@ -150,7 +150,7 @@ func fmtVxByte(op string, instr []byte) string {
 	return fmt.Sprintf("%s V%X, 0x%02X", op, x, instr[1])
 }
 
-func disassemble(opCodes []byte, offset uint16) strings.Builder {
+func Disassemble(opCodes []byte, offset uint16) strings.Builder {
 	var out strings.Builder
 
 	// IF there's an odd number of bytes passed in we ignore the

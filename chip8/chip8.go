@@ -48,7 +48,9 @@ type Chip8 struct {
 	programPtr  uint16
 	regI        uint16
 	registers   map[byte]byte
-	step        chan bool
+	Step        chan struct{}
+	Stop        chan struct{}
+	Restart     chan struct{}
 }
 
 // NewChip8 accepts a keyboard and a beeper and returns a pointer to a full
@@ -71,7 +73,9 @@ func NewChip8(b Beeper) *Chip8 {
 		programPtr:  PROGRAM_OFFSET,
 		regI:        0,
 		registers:   r,
-		step:        make(chan bool),
+		Step:        make(chan struct{}),
+		Stop:        make(chan struct{}),
+		Restart:     make(chan struct{}),
 	}
 }
 
@@ -80,7 +84,21 @@ func (c8 *Chip8) String() {
 	var msg bytes.Buffer
 	// Uncomment the following to get a hex dump of the entire memory stack
 	// msg.WriteString(hex.Dump(c8.memory))
-	msg.WriteString(c8.FrameBuffer.String())
+	var iStart, iEnd uint16
+	if c8.programPtr < 10 {
+		iStart = 0
+	} else {
+		iStart = c8.programPtr - 10
+	}
+	if c8.programPtr > 4084 {
+		iEnd = 4096
+	} else {
+		iEnd = c8.programPtr + 12
+	}
+
+	iBuilder := Disassemble(c8.memory[iStart:iEnd], iStart)
+	msg.WriteString(iBuilder.String() + "\n")
+
 	msg.WriteString(fmt.Sprintf("Program Counter: %X (%d)\n", c8.programPtr, c8.programPtr))
 
 	instr := c8.memory[c8.programPtr : c8.programPtr+2]
@@ -106,9 +124,6 @@ func (c8 *Chip8) Load(filename string) {
 	if err != nil {
 		log.Fatalf("error reading data from file: %v")
 	}
-	//builder := disassemble(binData, 0x200)
-	//fmt.Println(builder.String())
-	//panic("done")
 
 	for i := 0; i < len(binData); i++ {
 		c8.memory[PROGRAM_OFFSET+i] = binData[i]
@@ -122,8 +137,20 @@ func (c8 *Chip8) Run() {
 	go func() {
 		for _ = range ticker.C {
 			c8.execInstr()
-			//c8.String()
-			//<-c8.step
+			c8.String()
+			select {
+			case <-c8.Stop:
+				for debug := true; debug == true; {
+					select {
+					case <-c8.Step:
+						c8.execInstr()
+						c8.String()
+					case <-c8.Restart:
+						debug = false
+					}
+				}
+			default:
+			}
 		}
 	}()
 }

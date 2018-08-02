@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-func (c8 *Chip8) execInstr() {
+func (c8 *Chip8) ExecInstr() {
 	nextInstr := c8.programPtr + 2
 	instr := c8.memory[c8.programPtr:nextInstr]
 

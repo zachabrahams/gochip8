@@ -38,7 +38,7 @@ const (
 // registers: An array of the 16 8-bit registesr used by the CPU.
 // They are named V0-VF.
 //
-// step: a channel for doing hacky debugging - should be refactored away.
+// stop: a channel for doing hacky debugging - should be refactored away.
 type Chip8 struct {
 	beepTimer   *Timer
 	callStack   []uint16
@@ -49,9 +49,7 @@ type Chip8 struct {
 	programPtr  uint16
 	regI        uint16
 	registers   map[byte]byte
-	Step        chan struct{}
 	Stop        chan struct{}
-	Restart     chan struct{}
 }
 
 // NewChip8 accepts a keyboard and a beeper and returns a pointer to a full
@@ -74,9 +72,7 @@ func NewChip8(b Beeper) *Chip8 {
 		programPtr:  PROGRAM_OFFSET,
 		regI:        0,
 		registers:   r,
-		Step:        make(chan struct{}),
 		Stop:        make(chan struct{}),
-		Restart:     make(chan struct{}),
 	}
 }
 
@@ -140,21 +136,10 @@ func (c8 *Chip8) Run() {
 	ticker := time.NewTicker(CLOCK_TICK * time.Millisecond)
 	go func() {
 		for _ = range ticker.C {
-			c8.execInstr()
-			clearScreen()
-			c8.String()
+			c8.ExecInstr()
 			select {
 			case <-c8.Stop:
-				for debug := true; debug == true; {
-					select {
-					case <-c8.Step:
-						c8.execInstr()
-						clearScreen()
-						c8.String()
-					case <-c8.Restart:
-						debug = false
-					}
-				}
+				return
 			default:
 			}
 		}

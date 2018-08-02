@@ -22,6 +22,8 @@ func main() {
 	switch subcommand {
 	case "run":
 		run(programFile)
+	case "debug":
+		debug(programFile)
 	case "dis":
 		dis(programFile)
 	default:
@@ -44,8 +46,64 @@ func dis(programFile string) {
 	fmt.Println(builder.String())
 }
 
+func debug(programFile string) {
+	var (
+		command string
+		s       struct{}
+	)
+	fmt.Println("Starting Chip8 Emulator")
+
+	screen := NewScreen()
+	defer screen.Close()
+
+	beeper := NewSDLBeeper()
+	defer beeper.Close()
+
+	c8 := chip8.NewChip8(beeper)
+	c8.Load(programFile)
+	c8.String()
+	quit := false
+	running := false
+	for !quit {
+		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
+			switch event.(type) {
+			case *sdl.QuitEvent:
+				println("Quit")
+				quit = true
+			case *sdl.KeyboardEvent:
+				kevent := event.(*sdl.KeyboardEvent)
+				if kevent.Type == sdl.KEYUP && kevent.Keysym.Sym == sdl.K_PERIOD {
+					c8.Stop <- s
+					c8.String()
+					running = false
+				}
+			}
+		}
+		if !running {
+			fmt.Print("command: ")
+			fmt.Scanln(&command)
+			switch command {
+			case "s":
+				c8.ExecInstr()
+				c8.String()
+			case "r":
+				c8.Run()
+				running = true
+			case "q":
+				quit = true
+			}
+		}
+		kbState := sdl.GetKeyboardState()
+		newKBState := parseKbState(kbState)
+
+		c8.Keyboard.Update(newKBState)
+		screen.Update(c8.FrameBuffer)
+
+	}
+	fmt.Println("Closing Chip8 Emulator")
+}
+
 func run(programFile string) {
-	var s struct{}
 	fmt.Println("Starting Chip8 Emulator")
 
 	screen := NewScreen()
@@ -64,24 +122,6 @@ func run(programFile string) {
 			case *sdl.QuitEvent:
 				println("Quit")
 				running = false
-				break
-			case *sdl.KeyboardEvent:
-				kevent := event.(*sdl.KeyboardEvent)
-				if kevent.Type == sdl.KEYUP && kevent.Keysym.Sym == sdl.K_PERIOD {
-					c8.Step <- s
-					kbState := sdl.GetKeyboardState()
-					newKBState := parseKbState(kbState)
-
-					c8.Keyboard.Update(newKBState)
-					screen.Update(c8.FrameBuffer)
-
-				}
-				if kevent.Type == sdl.KEYUP && kevent.Keysym.Sym == sdl.K_SLASH {
-					c8.Stop <- s
-				}
-				if kevent.Type == sdl.KEYUP && kevent.Keysym.Sym == sdl.K_COMMA {
-					c8.Restart <- s
-				}
 			}
 		}
 		kbState := sdl.GetKeyboardState()
